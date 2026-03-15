@@ -18,8 +18,7 @@ jobs:
     - name: Install Build Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y autoconf automake libtool pkg-config gettext \
-          libxml2-dev libcppunit-dev zlib1g-dev libsqlite3-dev libc-ares-dev libssh2-1-dev
+        sudo apt-get install -y autoconf automake libtool pkg-config gettext libcppunit-dev
         if [[ "${{ matrix.arch }}" == "arm64" ]]; then
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
         fi
@@ -28,9 +27,9 @@ jobs:
       run: |
         autoreconf -i
         if [[ "${{ matrix.arch }}" == "x64" ]]; then
-          ./configure --enable-static --disable-nls
+          ./configure --enable-static --disable-nls --without-libxml2 --without-gnutls --without-libssh2 --without-sqlite3
         else
-          ./configure --host=aarch64-linux-gnu --enable-static --disable-nls
+          ./configure --host=aarch64-linux-gnu --enable-static --disable-nls --without-libxml2 --without-gnutls --without-libssh2 --without-sqlite3
         fi
         make -j$(nproc)
     - name: Upload Binary
@@ -51,7 +50,7 @@ jobs:
     - name: Build aria2c
       run: |
         autoreconf -i
-        ./configure --host=x86_64-w64-mingw32 --without-libxml2 --without-gnutls --without-libnettle --without-libgmp --without-libssh2 --disable-nls
+        ./configure --host=x86_64-w64-mingw32 --without-libxml2 --without-gnutls --without-libnettle --without-libgmp --without-libssh2 --without-sqlite3 --disable-nls
         make -j$(nproc)
     - name: Upload Binary
       uses: actions/upload-artifact@v4
