@@ -1,11 +1,12 @@
 # aria2-unlock (Automation Scripts Branch)
 
-[![Multi-Platform Build](https://github.com/Bigzhangbig/aria2-unlock/actions/workflows/ci.yml/badge.svg)](https://github.com/Bigzhangbig/aria2-unlock/actions)
+[![Multi-Platform Release Build](https://github.com/Bigzhangbig/aria2-unlock/actions/workflows/release.yml/badge.svg)](https://github.com/Bigzhangbig/aria2-unlock/actions)
 
 本分支 (`feat-automation-scripts`) 在高性能内核的基础上，进一步整合了基于 P3TERX 方案的自动化运维脚本集。
 
 ## 0. 预编译版本下载 (Artifacts)
 您可以从 GitHub Actions 的 **[最新运行记录](https://github.com/Bigzhangbig/aria2-unlock/actions)** 中直接下载各平台的解锁版二进制文件：
+- **Windows**: `aria2c-windows-unlock` (.exe)
 - **macOS**: `aria2c-macos-unlock`
 - **Linux (Static)**: `aria2c-linux-static-unlock`
 
