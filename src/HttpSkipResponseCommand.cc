@@ -220,8 +220,34 @@ bool HttpSkipResponseCommand::processResponse()
       }
       throw DL_RETRY_EX2(MSG_RESOURCE_NOT_FOUND,
                          error_code::RESOURCE_NOT_FOUND);
+    case 400: // Bad Request
+      if (getOption()->getAsBool(PREF_RETRY_ON_400) &&
+          getOption()->getAsInt(PREF_RETRY_WAIT) > 0) {
+        throw DL_RETRY_EX2(fmt(EX_BAD_STATUS, statusCode),
+                           error_code::HTTP_PROTOCOL_ERROR);
+      }
+      break;
+    case 403: // Forbidden
+      if (getOption()->getAsBool(PREF_RETRY_ON_403) &&
+          getOption()->getAsInt(PREF_RETRY_WAIT) > 0) {
+        throw DL_RETRY_EX2(fmt(EX_BAD_STATUS, statusCode),
+                           error_code::HTTP_PROTOCOL_ERROR);
+      }
+      break;
+    case 406: // Not Acceptable
+      if (getOption()->getAsBool(PREF_RETRY_ON_406) &&
+          getOption()->getAsInt(PREF_RETRY_WAIT) > 0) {
+        throw DL_RETRY_EX2(fmt(EX_BAD_STATUS, statusCode),
+                           error_code::HTTP_PROTOCOL_ERROR);
+      }
+      break;
+    case 408: // Request Timeout
+    case 429: // Too Many Requests
     case 502:
     case 503:
+    case 507: // Insufficient Storage
+    case 520:
+    case 521:
       // Only retry if pretry-wait > 0. Hammering 'busy' server is not
       // a good idea.
       if (getOption()->getAsInt(PREF_RETRY_WAIT) > 0) {
@@ -236,6 +262,11 @@ bool HttpSkipResponseCommand::processResponse()
                          error_code::HTTP_SERVICE_UNAVAILABLE);
     };
 
+    if (getOption()->getAsBool(PREF_RETRY_ON_UNKNOWN) &&
+        getOption()->getAsInt(PREF_RETRY_WAIT) > 0) {
+      throw DL_RETRY_EX2(fmt(EX_BAD_STATUS, statusCode),
+                         error_code::HTTP_PROTOCOL_ERROR);
+    }
     throw DL_ABORT_EX2(fmt(EX_BAD_STATUS, statusCode),
                        error_code::HTTP_PROTOCOL_ERROR);
   }
