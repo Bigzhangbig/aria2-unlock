@@ -18,21 +18,14 @@ jobs:
     - name: Install Build Tools & Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y autoconf automake libtool pkg-config gettext autopoint libcppunit-dev m4
+        sudo apt-get install -y autoconf automake libtool pkg-config gettext autopoint intltool libcppunit-dev
         if [[ "${{ matrix.arch }}" == "arm64" ]]; then
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
         fi
 
     - name: Prepare build
       run: |
-        mkdir -p m4
-        libtoolize --force
-        aclocal
-        autoheader
-        automake --add-missing
-        autoconf
-        # Check if configure was generated
-        ls -l configure
+        autoreconf -i
 
     - name: Configure and Build
       run: |
@@ -56,15 +49,10 @@ jobs:
     - name: Windows setup
       run: |
         sudo apt-get update
-        sudo apt-get install -y mingw-w64 autoconf automake libtool pkg-config gettext autopoint m4
+        sudo apt-get install -y mingw-w64 autoconf automake libtool pkg-config gettext autopoint intltool
     - name: Prepare build
       run: |
-        mkdir -p m4
-        libtoolize --force
-        aclocal
-        autoheader
-        automake --add-missing
-        autoconf
+        autoreconf -i
     - name: Build aria2c
       run: |
         ./configure --host=x86_64-w64-mingw32 --without-libxml2 --without-gnutls --without-libnettle --without-libgmp --without-libssh2 --without-sqlite3 --disable-nls
