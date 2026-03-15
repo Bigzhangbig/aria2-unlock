@@ -119,7 +119,7 @@ std::vector<OptionHandler*> OptionHandlerFactory::createOptionHandlers()
   }
   {
     OptionHandler* op(new NumberOptionHandler(
-        PREF_AUTO_SAVE_INTERVAL, TEXT_AUTO_SAVE_INTERVAL, "60", 0, 600));
+        PREF_AUTO_SAVE_INTERVAL, TEXT_AUTO_SAVE_INTERVAL, "20", 0, 600));
     op->addTag(TAG_ADVANCED);
     handlers.push_back(op);
   }
@@ -177,7 +177,7 @@ std::vector<OptionHandler*> OptionHandlerFactory::createOptionHandlers()
 #ifdef DEFAULT_DISK_CACHE
                                                   DEFAULT_DISK_CACHE,
 #else
-                                                  "16M",
+                                                  "64M",
 #endif
                                                   0));
     op->addTag(TAG_ADVANCED);
@@ -276,7 +276,7 @@ std::vector<OptionHandler*> OptionHandlerFactory::createOptionHandlers()
 #endif // HAVE_MMAP || __MINGW32__
   {
     OptionHandler* op(new BooleanOptionHandler(
-        PREF_ENABLE_RPC, TEXT_ENABLE_RPC, A2_V_FALSE, OptionHandler::OPT_ARG));
+        PREF_ENABLE_RPC, TEXT_ENABLE_RPC, A2_V_TRUE, OptionHandler::OPT_ARG));
     op->addTag(TAG_RPC);
     handlers.push_back(op);
   }
@@ -318,7 +318,7 @@ std::vector<OptionHandler*> OptionHandlerFactory::createOptionHandlers()
   }
   {
     OptionHandler* op(new ParameterOptionHandler(
-        PREF_FILE_ALLOCATION, TEXT_FILE_ALLOCATION, V_PREALLOC,
+        PREF_FILE_ALLOCATION, TEXT_FILE_ALLOCATION, V_NONE,
         {V_NONE, V_PREALLOC, V_TRUNC,
 #ifdef HAVE_SOME_FALLOCATE
          V_FALLOC
@@ -658,7 +658,7 @@ std::vector<OptionHandler*> OptionHandlerFactory::createOptionHandlers()
   }
   {
     OptionHandler* op(new NumberOptionHandler(
-        PREF_SAVE_SESSION_INTERVAL, TEXT_SAVE_SESSION_INTERVAL, "0", 0));
+        PREF_SAVE_SESSION_INTERVAL, TEXT_SAVE_SESSION_INTERVAL, "1", 0));
     op->addTag(TAG_ADVANCED);
     handlers.push_back(op);
   }
@@ -738,7 +738,7 @@ std::vector<OptionHandler*> OptionHandlerFactory::createOptionHandlers()
   }
   {
     OptionHandler* op(new BooleanOptionHandler(
-        PREF_RPC_ALLOW_ORIGIN_ALL, TEXT_RPC_ALLOW_ORIGIN_ALL, A2_V_FALSE,
+        PREF_RPC_ALLOW_ORIGIN_ALL, TEXT_RPC_ALLOW_ORIGIN_ALL, A2_V_TRUE,
         OptionHandler::OPT_ARG));
     op->addTag(TAG_RPC);
     handlers.push_back(op);
@@ -759,7 +759,7 @@ std::vector<OptionHandler*> OptionHandlerFactory::createOptionHandlers()
   }
   {
     OptionHandler* op(new BooleanOptionHandler(PREF_RPC_LISTEN_ALL,
-                                               TEXT_RPC_LISTEN_ALL, A2_V_FALSE,
+                                               TEXT_RPC_LISTEN_ALL, A2_V_TRUE,
                                                OptionHandler::OPT_ARG));
     op->addTag(TAG_RPC);
     handlers.push_back(op);
@@ -832,7 +832,7 @@ std::vector<OptionHandler*> OptionHandlerFactory::createOptionHandlers()
   }
   {
     OptionHandler* op(new NumberOptionHandler(
-        PREF_CONNECT_TIMEOUT, TEXT_CONNECT_TIMEOUT, "60", 1, 600));
+        PREF_CONNECT_TIMEOUT, TEXT_CONNECT_TIMEOUT, "10", 1, 600));
     op->addTag(TAG_FTP);
     op->addTag(TAG_HTTP);
     op->setInitialOption(true);
@@ -871,7 +871,7 @@ std::vector<OptionHandler*> OptionHandlerFactory::createOptionHandlers()
   }
   {
     OptionHandler* op(new NumberOptionHandler(PREF_MAX_TRIES, TEXT_MAX_TRIES,
-                                              "5", 0, -1, 'm'));
+                                              "0", 0, -1, 'm'));
     op->addTag(TAG_FTP);
     op->addTag(TAG_HTTP);
     op->setInitialOption(true);
@@ -924,7 +924,7 @@ std::vector<OptionHandler*> OptionHandlerFactory::createOptionHandlers()
   }
   {
     OptionHandler* op(
-        new NumberOptionHandler(PREF_RETRY_WAIT, TEXT_RETRY_WAIT, "0", 0, 600));
+        new NumberOptionHandler(PREF_RETRY_WAIT, TEXT_RETRY_WAIT, "10", 0, 600));
     op->addTag(TAG_FTP);
     op->addTag(TAG_HTTP);
     op->setInitialOption(true);
@@ -1038,7 +1038,7 @@ std::vector<OptionHandler*> OptionHandlerFactory::createOptionHandlers()
   }
   {
     OptionHandler* op(
-        new NumberOptionHandler(PREF_TIMEOUT, TEXT_TIMEOUT, "60", 1, 600, 't'));
+        new NumberOptionHandler(PREF_TIMEOUT, TEXT_TIMEOUT, "10", 1, 600, 't'));
     op->addTag(TAG_FTP);
     op->addTag(TAG_HTTP);
     op->setInitialOption(true);
@@ -1602,7 +1602,7 @@ std::vector<OptionHandler*> OptionHandlerFactory::createOptionHandlers()
   }
   {
     OptionHandler* op(
-        new NumberOptionHandler(PREF_BT_MAX_PEERS, TEXT_BT_MAX_PEERS, "55", 0));
+        new NumberOptionHandler(PREF_BT_MAX_PEERS, TEXT_BT_MAX_PEERS, "128", 0));
     op->addTag(TAG_BITTORRENT);
     op->setInitialOption(true);
     op->setChangeOption(true);
@@ -1742,7 +1742,7 @@ std::vector<OptionHandler*> OptionHandlerFactory::createOptionHandlers()
   }
   {
     OptionHandler* op(new NumberOptionHandler(
-        PREF_BT_TRACKER_TIMEOUT, TEXT_BT_TRACKER_TIMEOUT, "60", 1, 600));
+        PREF_BT_TRACKER_TIMEOUT, TEXT_BT_TRACKER_TIMEOUT, "10", 1, 600));
     op->addTag(TAG_BITTORRENT);
     op->setInitialOption(true);
     op->setChangeGlobalOption(true);
