@@ -13,8 +13,19 @@ jobs:
       matrix:
         arch: [x64, arm64]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     
+    - name: Cache dependencies (Linux)
+      uses: actions/cache@v5
+      with:
+        path: |
+          /var/cache/apt
+          /usr/include
+          /usr/lib
+        key: linux-release-${{ matrix.arch }}-${{ hashFiles('configure.ac') }}
+        restore-keys: |
+          linux-release-${{ matrix.arch }}-
+
     - name: Setup LLVM
       run: |
         sudo apt-get update
@@ -52,13 +63,13 @@ jobs:
     name: Build Windows x64 with LLVM
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Setup LLVM
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang lld
-        echo "CC=clang" >> $GITHUB_ENV
-        echo "CXX=clang++" >> $GITHUB_ENV
+        sudo apt-get install -y clang-18 lld-18
+        echo "CC=clang-18" >> $GITHUB_ENV
+        echo "CXX=clang++-18" >> $GITHUB_ENV
     - name: Windows setup
       run: |
         sudo apt-get update
@@ -79,7 +90,7 @@ jobs:
     name: Build macOS with LLVM 21
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Install LLVM 21
       run: |
         brew install llvm@21

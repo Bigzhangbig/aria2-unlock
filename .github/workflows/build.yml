@@ -7,7 +7,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-22.04, macos-14]
-        compiler: [gcc, clang]
         crypto: [openssl, gnutls]
         bittorrent: [with-bt, without-bt]
         exclude:
@@ -20,13 +19,25 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
+    - name: Cache dependencies
+      uses: actions/cache@v5
+      with:
+        path: |
+          /var/cache/apt
+          ~/.brew
+          /usr/local/lib/pkgconfig
+        key: ${{ runner.os }}-build-${{ hashFiles('**/Makefile.am', 'configure.ac') }}
+        restore-keys: |
+          ${{ runner.os }}-build-
     - name: Linux setup
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update
         sudo apt-get install \
-          g++-12 \
-          clang-15 \
+          clang-18 \
+          lld-18 \
+          libc++-18-dev \
+          libc++abi-18-dev \
           autoconf \
           automake \
           autotools-dev \
@@ -43,28 +54,20 @@ jobs:
     - name: MacOS setup
       if: runner.os == 'macOS'
       run: |
-        brew install cppunit gettext openssl libssh2 c-ares sqlite3 \
+        brew install llvm@18 cppunit gettext openssl libssh2 c-ares sqlite3 \
           autoconf automake pkg-config libtool
-    - name: Setup clang (Linux)
-      if: runner.os == 'Linux' && matrix.compiler == 'clang'
+    - name: Setup LLVM (Linux)
+      if: runner.os == 'Linux'
       run: |
-        echo 'CC=clang-15' >> $GITHUB_ENV
-        echo 'CXX=clang++-15' >> $GITHUB_ENV
-    - name: Setup clang (MacOS)
-      if: runner.os == 'macOS' && matrix.compiler == 'clang'
+        echo 'CC=clang-18' >> $GITHUB_ENV
+        echo 'CXX=clang++-18' >> $GITHUB_ENV
+        echo 'LDFLAGS=-fuse-ld=lld-18' >> $GITHUB_ENV
+    - name: Setup LLVM (MacOS)
+      if: runner.os == 'macOS'
       run: |
-        echo 'CC=clang' >> $GITHUB_ENV
-        echo 'CXX=clang++' >> $GITHUB_ENV
-    - name: Setup gcc (Linux)
-      if: runner.os == 'Linux' && matrix.compiler == 'gcc'
-      run: |
-        echo 'CC=gcc-12' >> $GITHUB_ENV
-        echo 'CXX=g++-12' >> $GITHUB_ENV
-    - name: Setup gcc (MacOS)
-      if: runner.os == 'macOS' && matrix.compiler == 'gcc'
-      run: |
-        echo 'CC=gcc' >> $GITHUB_ENV
-        echo 'CXX=g++' >> $GITHUB_ENV
+        echo "CC=$(brew --prefix llvm@18)/bin/clang" >> $GITHUB_ENV
+        echo "CXX=$(brew --prefix llvm@18)/bin/clang++" >> $GITHUB_ENV
+        echo "LDFLAGS=-L$(brew --prefix llvm@18)/lib -Wl,-rpath,$(brew --prefix llvm@18)/lib" >> $GITHUB_ENV
     - name: Libtool
       run: |
         autoreconf -i
