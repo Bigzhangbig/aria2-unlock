@@ -1,6 +1,14 @@
 # aria2-unlock (High-Performance Core)
 
+[![Multi-Platform Release Build](https://github.com/Bigzhangbig/aria2-unlock/actions/workflows/release.yml/badge.svg)](https://github.com/Bigzhangbig/aria2-unlock/actions)
+
 本项目是基于官方 `aria2` 的深度增强版，核心目标是**彻底解除性能枷锁**，并针对国内网络环境注入 P3TERX 的高性能默认配置。
+
+## 0. 预编译版本下载 (Artifacts)
+您可以从 GitHub Actions 的 **[最新运行记录](https://github.com/Bigzhangbig/aria2-unlock/actions)** 中直接下载各平台的解锁版二进制文件：
+- **Windows**: `aria2c-windows-unlock` (.exe)
+- **macOS**: `aria2c-macos-unlock`
+- **Linux (Static)**: `aria2c-linux-static-unlock`
 
 ## 1. 核心增强特性 (相对于官方版)
 

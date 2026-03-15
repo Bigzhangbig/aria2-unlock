@@ -1,0 +1,64 @@
+name: Multi-Platform Release Build (Unlock)
+
+on:
+  push:
+    branches: [ master, feat-automation-scripts ]
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: MacOS setup
+      run: |
+        brew install cppunit gettext libssh2 c-ares sqlite3 \
+          autoconf automake pkg-config libtool libxml2
+    - name: Build aria2c
+      run: |
+        autoreconf -i
+        ./configure --without-openssl --without-gnutls --with-appletls --with-libxml2 --disable-nls
+        make -j$(sysctl -n hw.ncpu)
+    - name: Upload Binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: aria2c-macos-unlock
+        path: src/aria2c
+
+  build-linux-static:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Linux setup
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y autoconf automake libtool pkg-config libxml2-dev libcppunit-dev gettext
+    - name: Build aria2c (Static)
+      run: |
+        autoreconf -i
+        ./configure --enable-static --disable-nls
+        make -j$(nproc)
+    - name: Upload Binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: aria2c-linux-static-unlock
+        path: src/aria2c
+
+  build-windows:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Windows setup
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y mingw-w64 autoconf automake libtool pkg-config gettext
+    - name: Build aria2c (Windows x64)
+      run: |
+        autoreconf -i
+        ./configure --host=x86_64-w64-mingw32 --without-libxml2 --without-gnutls --without-libnettle --without-libgmp --without-libssh2 --disable-nls
+        make -j$(nproc)
+    - name: Upload Binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: aria2c-windows-unlock
+        path: src/aria2c.exe
