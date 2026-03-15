@@ -15,10 +15,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Install Build Dependencies
+    - name: Install Build Tools & Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y autoconf automake libtool pkg-config gettext libcppunit-dev
+        sudo apt-get install -y autoconf automake libtool pkg-config gettext autopoint libcppunit-dev
         if [[ "${{ matrix.arch }}" == "arm64" ]]; then
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
         fi
@@ -46,7 +46,7 @@ jobs:
     - name: Windows setup
       run: |
         sudo apt-get update
-        sudo apt-get install -y mingw-w64 autoconf automake libtool pkg-config gettext
+        sudo apt-get install -y mingw-w64 autoconf automake libtool pkg-config gettext autopoint
     - name: Build aria2c
       run: |
         autoreconf -i
