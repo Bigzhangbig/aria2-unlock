@@ -6,12 +6,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-universal:
-    name: Build ${{ matrix.target }} with LLVM 21
+  build-linux:
+    name: Build Linux ${{ matrix.arch }} with LLVM 21
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target: [linux-x64, linux-arm64, windows-x64, macos-universal]
+        arch: [x64, arm64]
     steps:
     - uses: actions/checkout@v4
     
@@ -28,62 +28,74 @@ jobs:
     - name: Install Build Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y autoconf automake libtool pkg-config gettext libxml2-dev libcppunit-dev
-        if [[ "${{ matrix.target }}" == *"windows"* ]]; then
-          sudo apt-get install -y mingw-w64
-        fi
-        if [[ "${{ matrix.target }}" == *"arm64"* ]]; then
+        sudo apt-get install -y autoconf automake libtool pkg-config gettext \
+          libxml2-dev libcppunit-dev zlib1g-dev libsqlite3-dev libc-ares-dev libssh2-1-dev
+        if [[ "${{ matrix.arch }}" == "arm64" ]]; then
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
         fi
 
     - name: Configure and Build
       run: |
         autoreconf -i
-        if [[ "${{ matrix.target }}" == "linux-x64" ]]; then
+        if [[ "${{ matrix.arch }}" == "x64" ]]; then
           ./configure --enable-static --disable-nls
-        elif [[ "${{ matrix.target }}" == "linux-arm64" ]]; then
+        else
           ./configure --host=aarch64-linux-gnu --enable-static --disable-nls
-        elif [[ "${{ matrix.target }}" == "windows-x64" ]]; then
-          ./configure --host=x86_64-w64-mingw32 --without-libxml2 --without-gnutls --disable-nls
-        elif [[ "${{ matrix.target }}" == "macos-universal" ]]; then
-          # For macOS universal build on Linux, we'd normally need a specialized toolchain. 
-          # Simplification: we'll use the default runner if it was macOS, but matrix is on Ubuntu.
-          # Adjusting strategy: macOS build should run on macos-latest for native LLVM support.
-          echo "Skipping macOS on Linux runner, see dedicated job."
         fi
-        if [[ "${{ matrix.target }}" != "macos-universal" ]]; then
-          make -j$(nproc)
-        fi
-
-    - name: Upload Artifact
-      if: matrix.target != 'macos-universal'
+        make -j$(nproc)
+    - name: Upload Binary
       uses: actions/upload-artifact@v4
       with:
-        name: aria2c-${{ matrix.target }}-llvm21
-        path: |
-          src/aria2c
-          src/aria2c.exe
+        name: aria2c-linux-${{ matrix.arch }}-llvm21
+        path: src/aria2c
+
+  build-windows:
+    name: Build Windows x64 with LLVM 21
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup LLVM 21
+      run: |
+        wget https://apt.llvm.org/llvm.sh
+        chmod +x llvm.sh
+        sudo ./llvm.sh 21
+        sudo apt-get install -y clang-21 lld-21
+        echo "CC=clang-21" >> $GITHUB_ENV
+        echo "CXX=clang++-21" >> $GITHUB_ENV
+    - name: Windows setup
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y mingw-w64 autoconf automake libtool pkg-config gettext
+    - name: Build aria2c
+      run: |
+        autoreconf -i
+        ./configure --host=x86_64-w64-mingw32 --without-libxml2 --without-gnutls --without-libnettle --without-libgmp --without-libssh2 --disable-nls
+        make -j$(nproc)
+    - name: Upload Binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: aria2c-windows-x64-llvm21
+        path: src/aria2c.exe
 
   build-macos:
-    name: Build macOS Universal with LLVM 21
+    name: Build macOS with LLVM 21
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
     - name: Install LLVM 21
       run: |
         brew install llvm@21
-        echo "/opt/homebrew/opt/llvm@21/bin" >> $GITHUB_PATH
         echo "CC=$(brew --prefix llvm@21)/bin/clang" >> $GITHUB_ENV
         echo "CXX=$(brew --prefix llvm@21)/bin/clang++" >> $GITHUB_ENV
     - name: Build aria2c
       run: |
-        brew install autoconf automake libtool pkg-config gettext libxml2
+        brew install autoconf automake libtool pkg-config gettext libxml2 sqlite3 c-ares libssh2
         autoreconf -i
-        ./configure --without-openssl --without-gnutls --with-appletls --with-libxml2 --disable-nls \
-          CFLAGS="-arch arm64 -arch x86_64" CXXFLAGS="-arch arm64 -arch x86_64" LDFLAGS="-arch arm64 -arch x86_64"
+        # Build for current arch only first to ensure success
+        ./configure --without-openssl --without-gnutls --with-appletls --with-libxml2 --disable-nls
         make -j$(sysctl -n hw.ncpu)
     - name: Upload Binary
       uses: actions/upload-artifact@v4
       with:
-        name: aria2c-macos-universal-llvm21
+        name: aria2c-macos-${{ runner.arch }}-llvm21
         path: src/aria2c
