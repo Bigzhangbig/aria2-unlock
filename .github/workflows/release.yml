@@ -1,4 +1,4 @@
-name: Multi-Platform Release Build (Unlock)
+name: Multi-Platform LLVM 21 Build (Unlock)
 
 on:
   push:
@@ -6,59 +6,84 @@ on:
   workflow_dispatch:
 
 jobs:
+  build-universal:
+    name: Build ${{ matrix.target }} with LLVM 21
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [linux-x64, linux-arm64, windows-x64, macos-universal]
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup LLVM 21
+      run: |
+        wget https://apt.llvm.org/llvm.sh
+        chmod +x llvm.sh
+        sudo ./llvm.sh 21
+        sudo apt-get install -y clang-21 lld-21 libc++-21-dev libc++abi-21-dev
+        echo "CC=clang-21" >> $GITHUB_ENV
+        echo "CXX=clang++-21" >> $GITHUB_ENV
+        echo "LDFLAGS=-fuse-ld=lld-21" >> $GITHUB_ENV
+
+    - name: Install Build Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y autoconf automake libtool pkg-config gettext libxml2-dev libcppunit-dev
+        if [[ "${{ matrix.target }}" == *"windows"* ]]; then
+          sudo apt-get install -y mingw-w64
+        fi
+        if [[ "${{ matrix.target }}" == *"arm64"* ]]; then
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+        fi
+
+    - name: Configure and Build
+      run: |
+        autoreconf -i
+        if [[ "${{ matrix.target }}" == "linux-x64" ]]; then
+          ./configure --enable-static --disable-nls
+        elif [[ "${{ matrix.target }}" == "linux-arm64" ]]; then
+          ./configure --host=aarch64-linux-gnu --enable-static --disable-nls
+        elif [[ "${{ matrix.target }}" == "windows-x64" ]]; then
+          ./configure --host=x86_64-w64-mingw32 --without-libxml2 --without-gnutls --disable-nls
+        elif [[ "${{ matrix.target }}" == "macos-universal" ]]; then
+          # For macOS universal build on Linux, we'd normally need a specialized toolchain. 
+          # Simplification: we'll use the default runner if it was macOS, but matrix is on Ubuntu.
+          # Adjusting strategy: macOS build should run on macos-latest for native LLVM support.
+          echo "Skipping macOS on Linux runner, see dedicated job."
+        fi
+        if [[ "${{ matrix.target }}" != "macos-universal" ]]; then
+          make -j$(nproc)
+        fi
+
+    - name: Upload Artifact
+      if: matrix.target != 'macos-universal'
+      uses: actions/upload-artifact@v4
+      with:
+        name: aria2c-${{ matrix.target }}-llvm21
+        path: |
+          src/aria2c
+          src/aria2c.exe
+
   build-macos:
+    name: Build macOS Universal with LLVM 21
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
-    - name: MacOS setup
+    - name: Install LLVM 21
       run: |
-        brew install cppunit gettext libssh2 c-ares sqlite3 \
-          autoconf automake pkg-config libtool libxml2
+        brew install llvm@21
+        echo "/opt/homebrew/opt/llvm@21/bin" >> $GITHUB_PATH
+        echo "CC=$(brew --prefix llvm@21)/bin/clang" >> $GITHUB_ENV
+        echo "CXX=$(brew --prefix llvm@21)/bin/clang++" >> $GITHUB_ENV
     - name: Build aria2c
       run: |
+        brew install autoconf automake libtool pkg-config gettext libxml2
         autoreconf -i
-        ./configure --without-openssl --without-gnutls --with-appletls --with-libxml2 --disable-nls
+        ./configure --without-openssl --without-gnutls --with-appletls --with-libxml2 --disable-nls \
+          CFLAGS="-arch arm64 -arch x86_64" CXXFLAGS="-arch arm64 -arch x86_64" LDFLAGS="-arch arm64 -arch x86_64"
         make -j$(sysctl -n hw.ncpu)
     - name: Upload Binary
       uses: actions/upload-artifact@v4
       with:
-        name: aria2c-macos-unlock
+        name: aria2c-macos-universal-llvm21
         path: src/aria2c
-
-  build-linux-static:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Linux setup
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y autoconf automake libtool pkg-config libxml2-dev libcppunit-dev gettext
-    - name: Build aria2c (Static)
-      run: |
-        autoreconf -i
-        ./configure --enable-static --disable-nls
-        make -j$(nproc)
-    - name: Upload Binary
-      uses: actions/upload-artifact@v4
-      with:
-        name: aria2c-linux-static-unlock
-        path: src/aria2c
-
-  build-windows:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Windows setup
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y mingw-w64 autoconf automake libtool pkg-config gettext
-    - name: Build aria2c (Windows x64)
-      run: |
-        autoreconf -i
-        ./configure --host=x86_64-w64-mingw32 --without-libxml2 --without-gnutls --without-libnettle --without-libgmp --without-libssh2 --disable-nls
-        make -j$(nproc)
-    - name: Upload Binary
-      uses: actions/upload-artifact@v4
-      with:
-        name: aria2c-windows-unlock
-        path: src/aria2c.exe
