@@ -10,6 +10,7 @@ jobs:
     name: Build Linux ${{ matrix.arch }} (Static)
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         arch: [x64, arm64]
     steps:
@@ -49,7 +50,7 @@ jobs:
     - name: Windows setup
       run: |
         sudo apt-get update
-        sudo apt-get install -y mingw-w64 autoconf automake libtool pkg-config gettext autopoint intltool
+        sudo apt-get install -y mingw-w64 libz-mingw-w64-dev autoconf automake libtool pkg-config gettext autopoint intltool
     - name: Prepare build
       run: |
         autoreconf -i
