@@ -34,7 +34,7 @@ jobs:
           ./configure --enable-static --disable-nls --without-libxml2 --without-gnutls --without-libssh2 --without-sqlite3
         else
           echo "Building arm64 artifact without SSL/TLS support (HTTPS disabled)."
-          ./configure --host=aarch64-linux-gnu --enable-static --disable-nls --without-libxml2 --without-libexpat --without-gnutls --without-libnettle --without-libgmp --without-libgcrypt --without-libcares --without-libz --without-libssh2 --without-sqlite3
+          ./configure --host=aarch64-linux-gnu --enable-static --disable-nls --without-libxml2 --without-libexpat --without-openssl --without-gnutls --without-libnettle --without-libgmp --without-libgcrypt --without-libcares --without-libz --without-libssh2 --without-sqlite3
         fi
         make -j$(nproc)
     - name: Upload Binary
