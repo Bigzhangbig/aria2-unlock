@@ -22,26 +22,12 @@ jobs:
         sudo apt-get install -y autoconf automake libtool pkg-config gettext autopoint intltool libcppunit-dev
         if [[ "${{ matrix.arch }}" == "arm64" ]]; then
           sudo dpkg --add-architecture arm64
-          # Replace the runner's default sources (security.ubuntu.com 404s for arm64) with:
-          #   - an amd64 source on the existing azure mirror, and
-          #   - an arm64 source on ports.ubuntu.com (the only mirror that reliably serves arm64 binary-arm64).
+          # Replace the runner's default sources (security.ubuntu.com 404s for arm64) with two
+          # arch-scoped sources: amd64 stays on the existing azure mirror, arm64 uses
+          # ports.ubuntu.com (the only mirror that reliably serves arm64 binary-arm64 paths).
           sudo mv /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/ubuntu.sources.disabled 2>/dev/null || true
-          cat > /tmp/aria2-amd64.sources <<'EOF'
-Types: deb
-URIs: http://azure.archive.ubuntu.com/ubuntu
-Suites: noble noble-updates noble-backports noble-security
-Components: main restricted universe multiverse
-Architectures: amd64
-EOF
-          cat > /tmp/aria2-arm64.sources <<'EOF'
-Types: deb
-URIs: http://ports.ubuntu.com/ubuntu-ports
-Suites: noble noble-updates
-Components: main universe
-Architectures: arm64
-EOF
-          sudo install -m 644 /tmp/aria2-amd64.sources /etc/apt/sources.list.d/aria2-amd64.sources
-          sudo install -m 644 /tmp/aria2-arm64.sources /etc/apt/sources.list.d/aria2-arm64.sources
+          printf '%s\n' 'Types: deb' 'URIs: http://azure.archive.ubuntu.com/ubuntu' 'Suites: noble noble-updates noble-backports noble-security' 'Components: main restricted universe multiverse' 'Architectures: amd64' | sudo tee /etc/apt/sources.list.d/aria2-amd64.sources >/dev/null
+          printf '%s\n' 'Types: deb' 'URIs: http://ports.ubuntu.com/ubuntu-ports' 'Suites: noble noble-updates' 'Components: main universe' 'Architectures: arm64' | sudo tee /etc/apt/sources.list.d/aria2-arm64.sources >/dev/null
           sudo apt-get update
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libssl-dev:arm64
         fi
