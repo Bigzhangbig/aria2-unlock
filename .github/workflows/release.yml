@@ -29,7 +29,7 @@ jobs:
           printf '%s\n' 'Types: deb' 'URIs: http://azure.archive.ubuntu.com/ubuntu' 'Suites: noble noble-updates noble-backports noble-security' 'Components: main restricted universe multiverse' 'Architectures: amd64' | sudo tee /etc/apt/sources.list.d/aria2-amd64.sources >/dev/null
           printf '%s\n' 'Types: deb' 'URIs: http://ports.ubuntu.com/ubuntu-ports' 'Suites: noble noble-updates' 'Components: main universe' 'Architectures: arm64' | sudo tee /etc/apt/sources.list.d/aria2-arm64.sources >/dev/null
           sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libssl-dev:arm64
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libssl-dev:arm64 zlib1g-dev:arm64
         fi
 
     - name: Prepare build
