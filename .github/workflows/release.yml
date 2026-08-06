@@ -22,11 +22,10 @@ jobs:
         sudo apt-get install -y autoconf automake libtool pkg-config gettext autopoint intltool libcppunit-dev
         if [[ "${{ matrix.arch }}" == "arm64" ]]; then
           sudo dpkg --add-architecture arm64
-          # Default runner sources point at azure.archive.ubuntu.com (no arm64) and security.ubuntu.com
-          # (404s for arm64), which breaks apt-get update after adding the arm64 architecture.
-          # Replace them with a single source on the main archive, scoped to amd64+arm64.
+          # Default runner sources are amd64-only / behind Cloudflare that 404s for arm64 binary-arm64.
+          # Use ports.ubuntu.com (official Ubuntu ports archive) for the arm64 architecture.
           sudo mv /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/ubuntu.sources.disabled 2>/dev/null || true
-          printf 'Types: deb\nURIs: http://archive.ubuntu.com/ubuntu\nSuites: noble noble-updates noble-backports\nComponents: main restricted universe multiverse\nArchitectures: amd64 arm64\n' | sudo tee /etc/apt/sources.list.d/aria2-cross.sources >/dev/null
+          printf 'Types: deb\nURIs: http://ports.ubuntu.com/ubuntu-ports\nSuites: noble noble-updates\nComponents: main universe\nArchitectures: arm64\n' | sudo tee /etc/apt/sources.list.d/aria2-cross.sources >/dev/null
           sudo apt-get update
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libssl-dev:arm64
         fi
