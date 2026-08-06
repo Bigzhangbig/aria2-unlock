@@ -41,7 +41,7 @@ jobs:
         if [[ "${{ matrix.arch }}" == "x64" ]]; then
           ./configure --enable-static --disable-nls --without-libxml2 --without-gnutls --without-libssh2 --without-sqlite3
         else
-          ./configure --host=aarch64-linux-gnu --enable-static --disable-nls --without-libxml2 --without-gnutls --without-libssh2 --without-sqlite3
+          ./configure --host=aarch64-linux-gnu --enable-static --disable-nls --without-libxml2 --without-gnutls --without-libssh2 --without-sqlite3 --without-zlib --without-libexpat
         fi
         make -j$(nproc)
     - name: Upload Binary
