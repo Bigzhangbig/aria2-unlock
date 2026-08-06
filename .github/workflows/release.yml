@@ -22,8 +22,12 @@ jobs:
         sudo apt-get install -y autoconf automake libtool pkg-config gettext autopoint intltool libcppunit-dev
         if [[ "${{ matrix.arch }}" == "arm64" ]]; then
           sudo dpkg --add-architecture arm64
-        sudo apt-get update
-        sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libssl-dev:arm64
+          sudo install -d /etc/apt/sources.list.d
+          # Replace runner's amd64-only sources with one that explicitly serves both archs
+          # (the default sources include security.ubuntu.com which 404s for arm64 and breaks apt-get update).
+          printf 'Types: deb\nURIs: http://azure.archive.ubuntu.com/ubuntu\nSuites: noble noble-updates noble-backports\nComponents: main restricted universe multiverse\nArchitectures: amd64 arm64\n' | sudo tee /etc/apt/sources.list.d/aria2-cross.sources >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libssl-dev:arm64
         fi
 
     - name: Prepare build
